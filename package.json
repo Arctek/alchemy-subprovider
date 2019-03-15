@@ -1,0 +1,15 @@
+{
+  "name": "alchemy-subprovider",
+  "version": "0.0.1",
+  "description": "Subprovider to cater for high-level APIs offered through Alchemy.",
+  "main": "AlchemySubprovider.ts",
+  "author": "Joshua Richardson (Bamboo Relay)",
+  "license": "MIT",
+  "dependencies": {
+    "@0x/assert": "^2.0.6",
+    "@0x/subproviders": "^4.0.2",
+    "ethereum-types": "^2.1.0",
+    "json-rpc-error": "^2.0.0",
+    "p-limit": "^2.2.0"
+  }
+}
