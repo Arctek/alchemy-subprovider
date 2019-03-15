@@ -4,7 +4,9 @@
   "description": "Subprovider to cater for high-level APIs offered through Alchemy.",
   "main": "AlchemySubprovider.ts",
   "author": "Joshua Richardson (Bamboo Relay)",
-  "license": "MIT",
+  "license": "Apache-2.0",
+  "main": "lib/src/index.js",
+  "types": "lib/src/index.d.ts",
   "dependencies": {
     "@0x/assert": "^2.0.6",
     "@0x/subproviders": "^4.0.2",

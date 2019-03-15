@@ -1,7 +1,7 @@
 import { assert } from '@0x/assert';
 import { fetchAsync } from '@0x/utils';
 import { JSONRPCRequestPayload } from 'ethereum-types';
-import { Callback, ErrorCallback, AlchemyGetTokenBalancesResponse } from './types';
+import { Callback, ErrorCallback, AlchemyGetTokenBalancesResponse, AlchemyTokenBalance } from './types';
 import { Subprovider } from '@0x/subproviders';
 import { StatusCodes } from '@0x/types';
 import JsonRpcError = require('json-rpc-error');
@@ -49,6 +49,8 @@ export class AlchemySubprovider extends Subprovider {
             case 'eth_signTypedData_v3':
             case 'eth_sendTransaction':
             case 'eth_sendRawTransaction':
+            case 'net_version':
+            case 'web3_clientVersion':
                 next();
                 return;
             
@@ -141,22 +143,22 @@ export class AlchemySubprovider extends Subprovider {
                method: "eth_call",
                params: [{
                    to: tokenAddresses[i],
-                   data: "0x70a08231000000000000000000000000" + address.substring(2)
+                   data: "0x70a08231000000000000000000000000" + address.substring(2).toLowerCase()
                }],
                id: i
             }
 
             try {
-                let result = this._doAlchemyRequest(currentPayload);
+                let result: string = await this._doAlchemyRequest(currentPayload);
 
-                results[i] = {
-                    address: tokenAddresses[i],
+                results.tokenBalances[i] = {
+                    contractAddress: tokenAddresses[i],
                     tokenBalance: result,
                     error: null
                 };
             } catch (err) {
-                results[i] = {
-                    address: tokenAddresses[i],
+                results.tokenBalances[i] = {
+                    contractAddress: tokenAddresses[i],
                     tokenBalance: null,
                     error: err.toString()
                 };
