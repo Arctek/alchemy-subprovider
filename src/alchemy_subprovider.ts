@@ -50,6 +50,7 @@ export class AlchemySubprovider extends Subprovider {
             case 'eth_sendTransaction':
             case 'eth_sendRawTransaction':
             case 'net_version':
+            case 'personal_sign':
             case 'web3_clientVersion':
                 next();
                 return;
