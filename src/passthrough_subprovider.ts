@@ -19,6 +19,13 @@ export class PassthroughSubprovider extends Subprovider {
      */
     constructor(provider: Provider) {
         super();
+
+        if (!('sendAsync' in provider)) {
+            (provider as any).sendAsync = function () {
+                return this.send.apply(provider, arguments);
+            };
+        }
+        
         this._provider = provider;
     }
     /**
@@ -35,6 +42,14 @@ export class PassthroughSubprovider extends Subprovider {
             this._provider.sendAsync(payload, function(error, result) {
                 if (error) {
                     return end(error, null);
+                }
+
+                if (result && result.error) {
+                    if ('message' in result.error) {
+                        return end(new Error(result.error.message), null);    
+                    }
+                    
+                    return end(new Error(result.error), null);
                 }
 
                 if (!result || !result.result) {

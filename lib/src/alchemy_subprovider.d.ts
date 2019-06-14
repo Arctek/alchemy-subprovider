@@ -34,10 +34,22 @@ export declare class AlchemySubprovider extends Subprovider {
      */
     private _doAlchemyRequest;
     /**
+     * This method emulates getTokenAllowance API offered by Alchemy.
+     * @param payload JSON RPC payload
+     * @param end Callback to call if subprovider handled the request and wants to pass back the request.
+     */
+    private _emulateAlchemyGetTokenAllowance;
+    /**
      * This method emulates getTokenBalances API offered by Alchemy.
      * @param payload JSON RPC payload
      * @param end Callback to call if subprovider handled the request and wants to pass back the request.
      */
     private _emulateAlchemyGetTokenBalances;
+    /**
+     * This method emulates getTokenMetadata API offered by Alchemy.
+     * @param payload JSON RPC payload
+     * @param end Callback to call if subprovider handled the request and wants to pass back the request.
+     */
+    private _emulateAlchemyGetTokenMetadata;
 }
 //# sourceMappingURL=alchemy_subprovider.d.ts.map

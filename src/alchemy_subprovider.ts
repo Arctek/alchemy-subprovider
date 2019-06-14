@@ -5,6 +5,7 @@ import { Callback, ErrorCallback, AlchemyGetTokenBalancesResponse, AlchemyTokenB
 import { Subprovider } from '@0x/subproviders';
 import { StatusCodes } from '@0x/types';
 import JsonRpcError = require('json-rpc-error');
+import BigNumber from "bignumber.js";
 
 /**
  * This class implements the [web3-provider-engine](https://github.com/MetaMask/provider-engine)
@@ -49,15 +50,24 @@ export class AlchemySubprovider extends Subprovider {
             case 'eth_signTypedData_v3':
             case 'eth_sendTransaction':
             case 'eth_sendRawTransaction':
-            case 'net_version':
             case 'personal_sign':
             case 'web3_clientVersion':
                 next();
                 return;
             
+            case 'alchemy_getTokenAllowance':
+                if (this._isTestRPC) {
+                    return await this._emulateAlchemyGetTokenAllowance(payload, end);
+                }
+
             case 'alchemy_getTokenBalances':
                 if (this._isTestRPC) {
                     return await this._emulateAlchemyGetTokenBalances(payload, end);
+                }
+
+            case 'alchemy_getTokenMetadata':
+                if (this._isTestRPC) {
+                    return await this._emulateAlchemyGetTokenMetadata(payload, end);
                 }
 
             default:
@@ -123,6 +133,32 @@ export class AlchemySubprovider extends Subprovider {
         
         return data.result;
     }
+
+    /**
+     * This method emulates getTokenAllowance API offered by Alchemy.
+     * @param payload JSON RPC payload
+     * @param end Callback to call if subprovider handled the request and wants to pass back the request.
+     */
+    private async _emulateAlchemyGetTokenAllowance(payload: JSONRPCRequestPayload, end: ErrorCallback) {
+        const [contract, owner, spender] = payload.params;
+
+        const emmulatedPayload: JSONRPCRequestPayload = {
+           jsonrpc: "2.0",
+           method: "eth_call",
+           params: [{
+               to: contract,
+               data: "0xdd62ed3e000000000000000000000000" + owner.substring(2).toLowerCase().padStart() + "000000000000000000000000" + spender.substring(2).toLowerCase()
+           }],
+           id: 0
+        }
+        
+        try {
+            end(null, await this._doAlchemyRequest(emmulatedPayload));
+        } catch (err) {
+            end(err, null);
+        }        
+    }
+
     /**
      * This method emulates getTokenBalances API offered by Alchemy.
      * @param payload JSON RPC payload
@@ -167,5 +203,69 @@ export class AlchemySubprovider extends Subprovider {
         }
 
         end(null, results);
+    }
+
+    /**
+     * This method emulates getTokenMetadata API offered by Alchemy.
+     * @param payload JSON RPC payload
+     * @param end Callback to call if subprovider handled the request and wants to pass back the request.
+     */
+    private async _emulateAlchemyGetTokenMetadata(payload: JSONRPCRequestPayload, end: ErrorCallback) {
+        const [contract] = payload.params;
+        
+        try {
+            const symbol = await this._doAlchemyRequest({
+                jsonrpc: "2.0",
+                method: "eth_call",
+                params: [{
+                    to: contract,
+                    data: "0x95d89b41000000000000000000000000"
+                }],
+                id: 0
+            });
+
+            const decimals = await this._doAlchemyRequest({
+                jsonrpc: "2.0",
+                method: "eth_call",
+                params: [{
+                    to: contract,
+                    data: "0x313ce567000000000000000000000000"
+                }],
+                id: 1
+            });
+
+            const name = await this._doAlchemyRequest({
+                jsonrpc: "2.0",
+                method: "eth_call",
+                params: [{
+                    to: contract,
+                    data: "0x06fdde03000000000000000000000000"
+                }],
+                id: 2
+            });
+
+            let niceSymbol;
+            let niceName;
+
+            if (symbol.length == 194) {
+                const length = new BigNumber("0x" + symbol.substr(128, 2)).toNumber();
+                niceSymbol = new Buffer(symbol.substr(130, length * 2), 'hex').toString('utf8');
+            }
+
+            if (name.length == 194) {
+                const length = new BigNumber("0x" + name.substr(128, 2)).toNumber();
+                niceName = new Buffer(name.substr(130, length * 2), 'hex').toString('utf8');
+            }
+
+            end(null, {
+                logo: "https://static.alchemyapi.io/images/assets/1.png",
+                symbol: niceSymbol,
+                decimals: new BigNumber(decimals).toNumber(),
+                name: niceName
+            });
+
+        } catch (err) {
+            end(err, null);
+        }        
     }
 }
