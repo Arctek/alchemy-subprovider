@@ -9,7 +9,7 @@
   "types": "lib/src/index.d.ts",
   "dependencies": {
     "@0x/assert": "^2.0.6",
-    "@0x/subproviders": "^4.0.2",
+    "@0x/subproviders": "^7.0.0",
     "ethereum-types": "^2.1.0",
     "json-rpc-error": "^2.0.0",
     "p-limit": "^2.2.0"
